@@ -6,22 +6,22 @@ import (
 )
 
 // tagged error
-type tagerror interface {
+type TagErrorer interface {
 	error
 	GetTraces() (trace string)
 	AddTrace() *TagError
 	AddTag(tag string) *TagError
 	IfTagged(tags []string) bool
 	IfNotTagged(tags []string) bool
-	Wrap(tagerror)
-	Wrapped() tagerror
+	Wrap(TagErrorer)
+	Wrapped() TagErrorer
 }
 
 type TagError struct {
 	Tags    map[string]*struct{}
 	String  string
 	Trace   []string
-	wrapped tagerror
+	wrapped TagErrorer
 }
 
 func NewError(tags []string, format string, a ...interface{}) (e *TagError) {
@@ -105,11 +105,11 @@ func (e *TagError) IfNotTagged(tags []string) bool {
 	return true
 }
 
-func (e *TagError) Wrap(tagerr tagerror) {
+func (e *TagError) Wrap(tagerr TagErrorer) {
 	e.wrapped = tagerr
 }
 
-func (e *TagError) Wrapped() tagerror {
+func (e *TagError) Wrapped() TagErrorer {
 	return e.wrapped
 }
 
