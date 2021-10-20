@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"runtime"
 	
-	github.com/rusriver/filtertag
+	"github.com/rusriver/filtertag"
 )
 
 type Terr struct {
