@@ -3,9 +3,59 @@ package terr
 import (
 	"fmt"
 	"runtime"
+	
+	github.com/rusriver/filtertag
 )
 
-// tagged error
+type Terr struct {
+	LogEntry	*filtertag.Entry
+}
+
+func NewTerr() *Terr {
+	terr := &Terr{}
+	return terr
+}
+
+func (terr *Terr) NewError(tags []string, format string, a ...interface{}) (e *TagError) {
+	e = &TagError{
+		Tags:   map[string]*struct{}{},
+		String: fmt.Sprintf(format, a...),
+		terr:   terr,
+	}
+	for _, t := range tags {
+		e.Tags[t] = nil
+	}
+	pc, fn, line, _ := runtime.Caller(1)
+	e.Trace = append(e.Trace, fmt.Sprintf("%s[%s:%d]", runtime.FuncForPC(pc).Name(), fn, line))
+	tagstr := e.GetTagsString()
+	if e.terr.LogEntry != nil {
+		e.terr.LogEntry.Log("%v %v", tagstr, e.String)
+	} else {
+		fmt.Printf("%v %v", tagstr, e.String)
+	}
+	return e
+}
+
+func (terr *Terr) NewTaggedErrorFrom(tags []string, err error) (e *TagError) {
+	e = &TagError{
+		Tags:   map[string]*struct{}{},
+		String: err.Error(),
+		terr:   terr,
+	}
+	for _, t := range tags {
+		e.Tags[t] = nil
+	}
+	pc, fn, line, _ := runtime.Caller(1)
+	e.Trace = append(e.Trace, fmt.Sprintf("%s[%s:%d]", runtime.FuncForPC(pc).Name(), fn, line))
+	tagstr := e.GetTagsString()
+	if e.terr.LogEntry != nil {
+		e.terr.LogEntry.Log("%v %v", tagstr, e.String)
+	} else {
+		fmt.Printf("%v %v", tagstr, e.String)
+	}
+	return e
+}
+
 type TagErrorer interface {
 	error
 	GetTraces() (trace string)
@@ -22,36 +72,7 @@ type TagError struct {
 	String  string
 	Trace   []string
 	wrapped TagErrorer
-}
-
-func NewError(tags []string, format string, a ...interface{}) (e *TagError) {
-	e = &TagError{
-		Tags:   map[string]*struct{}{},
-		String: fmt.Sprintf(format, a...),
-	}
-	for _, t := range tags {
-		e.Tags[t] = nil
-	}
-	pc, fn, line, _ := runtime.Caller(1)
-	e.Trace = append(e.Trace, fmt.Sprintf("%s[%s:%d]", runtime.FuncForPC(pc).Name(), fn, line))
-	tagstr := e.GetTagsString()
-	fmt.Printf("%v %v", tagstr, e.String)
-	return e
-}
-
-func NewTaggedErrorFrom(tags []string, err error) (e *TagError) {
-	e = &TagError{
-		Tags:   map[string]*struct{}{},
-		String: err.Error(),
-	}
-	for _, t := range tags {
-		e.Tags[t] = nil
-	}
-	pc, fn, line, _ := runtime.Caller(1)
-	e.Trace = append(e.Trace, fmt.Sprintf("%s[%s:%d]", runtime.FuncForPC(pc).Name(), fn, line))
-	tagstr := e.GetTagsString()
-	fmt.Printf("%v %v", tagstr, e.String)
-	return e
+	terr    *Terr
 }
 
 func (e *TagError) Error() string {
