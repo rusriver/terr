@@ -31,7 +31,7 @@ func (terr *Terr) NewError(tags []string, format string, a ...interface{}) (e *T
 	if e.terr.LogEntry != nil {
 		e.terr.LogEntry.Log("%v %v", tagstr, e.String)
 	} else {
-		fmt.Printf("%v %v", tagstr, e.String)
+		fmt.Printf("%v %v\n", tagstr, e.String)
 	}
 	return e
 }
@@ -51,7 +51,7 @@ func (terr *Terr) NewTaggedErrorFrom(tags []string, err error) (e *TagError) {
 	if e.terr.LogEntry != nil {
 		e.terr.LogEntry.Log("%v %v", tagstr, e.String)
 	} else {
-		fmt.Printf("%v %v", tagstr, e.String)
+		fmt.Printf("%v %v\n", tagstr, e.String)
 	}
 	return e
 }
